@@ -25,9 +25,9 @@
             
             <div class="form-group">
                 <label for="login-input">Matrícula o Contraseña</label>
-                <input type="text" id="login-input" class="form-control" placeholder="20251234 o 2025hpjrm">
+                <input type="text" id="login-input" class="form-control" placeholder="20251234 o contraseña especial">
                 <div class="help-text">
-                    Estudiantes: 2025XXXX | Admin: 2025xxxx
+                    Estudiantes: 2025XXXX | Administradores: Contraseña especial
                 </div>
             </div>
             
@@ -36,6 +36,12 @@
             <div class="demo-notice">
                 <p>📍 La app verificará tu ubicación real</p>
                 <p>📷 Escaneará códigos QR con contenido "HPJRM"</p>
+                <p>🔐 Sistema seguro de autenticación</p>
+            </div>
+
+            <div class="security-notice">
+                <p>⚠️ <strong>Acceso Restringido</strong></p>
+                <p>Solo personal autorizado del hospital</p>
             </div>
         </div>
     </div>
@@ -139,6 +145,7 @@
                 <div class="admin-tab active" data-tab="students">Estudiantes</div>
                 <div class="admin-tab" data-tab="attendance">Asistencias</div>
                 <div class="admin-tab" data-tab="reports">Reportes</div>
+                <div class="admin-tab" data-tab="security">Seguridad</div>
                 <div class="admin-tab" data-tab="settings">Configuración</div>
             </div>
             
@@ -204,6 +211,39 @@
                     </div>
                 </div>
             </div>
+
+            <div id="tab-security" class="tab-content">
+                <div class="card">
+                    <h3>🔒 Panel de Seguridad</h3>
+                    <div class="security-stats">
+                        <div class="security-stat">
+                            <span class="stat-value" id="security-logs-count">0</span>
+                            <span class="stat-label">Eventos de Seguridad</span>
+                        </div>
+                        <div class="security-stat">
+                            <span class="stat-value" id="failed-attempts-count">0</span>
+                            <span class="stat-label">Intentos Fallidos</span>
+                        </div>
+                        <div class="security-stat">
+                            <span class="stat-value" id="active-sessions">1</span>
+                            <span class="stat-label">Sesiones Activas</span>
+                        </div>
+                    </div>
+                    
+                    <div class="security-actions">
+                        <button id="view-logs-btn" class="btn btn-secondary">Ver Logs de Seguridad</button>
+                        <button id="clear-logs-btn" class="btn btn-warning">Limpiar Logs Antiguos</button>
+                        <button id="export-logs-btn" class="btn btn-primary">Exportar Logs</button>
+                    </div>
+                    
+                    <div class="security-logs-container hidden">
+                        <h4>Últimos Eventos de Seguridad</h4>
+                        <div id="security-logs-list" class="logs-list">
+                            <!-- Logs se cargarán aquí -->
+                        </div>
+                    </div>
+                </div>
+            </div>
             
             <div id="tab-settings" class="tab-content">
                 <div class="card">
@@ -229,7 +269,20 @@
                     </form>
                     
                     <div class="danger-zone mt-20">
-                        <h4>Zona de Peligro</h4>
+                        <h4>🔐 Cambio de Contraseña Administrativa</h4>
+                        <div class="form-group">
+                            <label for="new-admin-password">Nueva Contraseña</label>
+                            <input type="password" id="new-admin-password" class="form-control" placeholder="Mínimo 8 caracteres">
+                        </div>
+                        <div class="form-group">
+                            <label for="confirm-admin-password">Confirmar Contraseña</label>
+                            <input type="password" id="confirm-admin-password" class="form-control">
+                        </div>
+                        <button id="change-password-btn" class="btn btn-warning">Cambiar Contraseña</button>
+                    </div>
+
+                    <div class="danger-zone mt-20">
+                        <h4>⚠️ Zona de Peligro</h4>
                         <button id="reset-all-btn" class="btn btn-danger">Restablecer Todos los Datos</button>
                     </div>
                 </div>
@@ -307,6 +360,18 @@
         </div>
     </div>
 
+    <!-- Modal de Bloqueo del Sistema -->
+    <div id="lock-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-icon">🔒</div>
+            <h3>Sistema Bloqueado</h3>
+            <p>Demasiados intentos fallidos. Por seguridad, el sistema estará bloqueado por <strong id="lock-time">15 minutos</strong>.</p>
+            <div class="modal-actions">
+                <button id="lock-close-btn" class="btn btn-primary">Entendido</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script src="js/auth.js"></script>
     <script src="js/geolocation.js"></script>
@@ -316,4 +381,4 @@
     <script src="js/reports.js"></script>
     <script src="js/app.js"></script>
 </body>
-</html>
+                    </html>
