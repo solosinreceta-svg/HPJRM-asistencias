@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#4a6ee0">
+    <title>Asistencia Hospitalaria HPJRM</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="styles.css">
+    <!-- Librería QR Scanner real -->
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+</head>
+<body>
+    <!-- Pantalla de Login -->
+    <div id="login-screen" class="screen active">
+        <div class="login-container">
+            <div class="logo">
+                <h1>Asistencia HPJRM</h1>
+                <p>Registro de entrada y salida hospitalaria</p>
+            </div>
+            
+            <div id="login-alert" class="alert alert-error hidden">
+                Credenciales inválidas. Verifique su matrícula o contraseña.
+            </div>
+            
+            <div class="form-group">
+                <label for="login-input">Matrícula o Contraseña</label>
+                <input type="text" id="login-input" class="form-control" placeholder="20251234 o 2025hpjrm">
+                <div class="help-text">
+                    Estudiantes: 2025XXXX | Admin: 2025xxxx
+                </div>
+            </div>
+            
+            <button id="login-btn" class="btn">Ingresar</button>
+            
+            <div class="demo-notice">
+                <p>📍 La app verificará tu ubicación real</p>
+                <p>📷 Escaneará códigos QR con contenido "HPJRM"</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Dashboard Estudiante -->
+    <div id="student-dashboard" class="screen">
+        <div class="header">
+            <h2>Dashboard Estudiante</h2>
+            <div class="user-info">
+                <span id="student-name" class="user-badge">Estudiante</span>
+                <button id="student-logout" class="btn btn-danger">Salir</button>
+            </div>
+        </div>
+        
+        <div class="student-dashboard">
+            <div class="card">
+                <h3>Mi Perfil</h3>
+                <form id="student-profile-form" class="profile-form">
+                    <div class="form-group">
+                        <label for="student-fullname">Nombre Completo *</label>
+                        <input type="text" id="student-fullname" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="student-career">Carrera</label>
+                        <input type="text" id="student-career" class="form-control" value="Medicina" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="student-group">Grupo</label>
+                        <input type="text" id="student-group" class="form-control" placeholder="Ej: Grupo A">
+                    </div>
+                    <button type="submit" class="btn btn-secondary">Guardar Perfil</button>
+                </form>
+            </div>
+            
+            <div class="card">
+                <h3>Registro Hospitalario</h3>
+                <div class="attendance-actions">
+                    <button id="scan-entry-btn" class="btn btn-success">
+                        🏥 Registrar Entrada
+                    </button>
+                    <button id="scan-exit-btn" class="btn btn-accent">
+                        🚪 Registrar Salida
+                    </button>
+                </div>
+                
+                <div class="manual-input mt-20">
+                    <p class="help-text">Si hay problemas con la cámara:</p>
+                    <div class="form-group">
+                        <label for="manual-qr-input">Código QR Manual</label>
+                        <input type="text" id="manual-qr-input" class="form-control" placeholder="HPJRM">
+                    </div>
+                    <div class="manual-buttons">
+                        <button id="manual-entry-btn" class="btn btn-secondary">Entrada Manual</button>
+                        <button id="manual-exit-btn" class="btn btn-secondary">Salida Manual</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>Mi Historial</h3>
+                <div id="attendance-history" class="attendance-history">
+                    <!-- Historial se carga aquí -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Dashboard Administrativo -->
+    <div id="admin-dashboard" class="screen">
+        <div class="header">
+            <h2>Dashboard Administrativo</h2>
+            <div class="user-info">
+                <span class="user-badge admin">Administrador</span>
+                <button id="admin-logout" class="btn btn-danger">Salir</button>
+            </div>
+        </div>
+        
+        <div class="admin-dashboard">
+            <!-- Métricas -->
+            <div class="metrics-grid">
+                <div class="metric-card primary">
+                    <div class="metric-label">Total Estudiantes</div>
+                    <div id="metric-total-students" class="metric-value">0</div>
+                </div>
+                <div class="metric-card success">
+                    <div class="metric-label">En Hospital Hoy</div>
+                    <div id="metric-inside-hospital" class="metric-value">0</div>
+                </div>
+                <div class="metric-card accent">
+                    <div class="metric-label">Entradas Hoy</div>
+                    <div id="metric-entries-today" class="metric-value">0</div>
+                </div>
+                <div class="metric-card admin">
+                    <div class="metric-label">Registros Totales</div>
+                    <div id="metric-total-records" class="metric-value">0</div>
+                </div>
+            </div>
+            
+            <!-- Pestañas -->
+            <div class="admin-tabs">
+                <div class="admin-tab active" data-tab="students">Estudiantes</div>
+                <div class="admin-tab" data-tab="attendance">Asistencias</div>
+                <div class="admin-tab" data-tab="reports">Reportes</div>
+                <div class="admin-tab" data-tab="settings">Configuración</div>
+            </div>
+            
+            <!-- Contenido de pestañas -->
+            <div id="tab-students" class="tab-content active">
+                <div class="card">
+                    <h3>Lista de Estudiantes</h3>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Matrícula</th>
+                                <th>Nombre</th>
+                                <th>Grupo</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="students-table-body">
+                            <!-- Datos de estudiantes -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div id="tab-attendance" class="tab-content">
+                <div class="card">
+                    <h3>Historial Completo</h3>
+                    <div class="table-controls">
+                        <button id="export-week-btn" class="btn btn-secondary">Exportar Semana Actual</button>
+                        <button id="clear-old-btn" class="btn btn-danger">Limpiar Registros Antiguos</button>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Estudiante</th>
+                                <th>Tipo</th>
+                                <th>Hora</th>
+                                <th>Ubicación</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attendance-table-body">
+                            <!-- Datos de asistencias -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div id="tab-reports" class="tab-content">
+                <div class="card">
+                    <h3>Reportes Semanales</h3>
+                    <div class="report-options">
+                        <div class="form-group">
+                            <label for="report-week">Seleccionar Semana</label>
+                            <input type="week" id="report-week" class="form-control">
+                        </div>
+                        <button id="generate-report-btn" class="btn btn-primary">Generar Reporte PDF</button>
+                        <button id="send-report-btn" class="btn btn-success">Enviar por Correo</button>
+                    </div>
+                    <div id="report-preview" class="report-preview hidden">
+                        <!-- Vista previa del reporte -->
+                    </div>
+                </div>
+            </div>
+            
+            <div id="tab-settings" class="tab-content">
+                <div class="card">
+                    <h3>Configuración del Sistema</h3>
+                    <form id="settings-form">
+                        <div class="form-group">
+                            <label for="hospital-lat">Latitud del Hospital</label>
+                            <input type="number" id="hospital-lat" class="form-control" step="0.000001" value="22.930857">
+                        </div>
+                        <div class="form-group">
+                            <label for="hospital-lng">Longitud del Hospital</label>
+                            <input type="number" id="hospital-lng" class="form-control" step="0.000001" value="-82.689359">
+                        </div>
+                        <div class="form-group">
+                            <label for="gps-radius">Radio Permitido (metros)</label>
+                            <input type="number" id="gps-radius" class="form-control" value="500" min="100" max="1000">
+                        </div>
+                        <div class="form-group">
+                            <label for="admin-email">Email para Reportes</label>
+                            <input type="email" id="admin-email" class="form-control" placeholder="admin@hospital.com">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Guardar Configuración</button>
+                    </form>
+                    
+                    <div class="danger-zone mt-20">
+                        <h4>Zona de Peligro</h4>
+                        <button id="reset-all-btn" class="btn btn-danger">Restablecer Todos los Datos</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Pantalla de Escáner -->
+    <div id="scanner-screen" class="screen">
+        <div class="header">
+            <h2 id="scanner-title">Escáner QR</h2>
+            <button id="close-scanner-btn" class="btn btn-danger">Cerrar</button>
+        </div>
+        
+        <div class="scanner-container">
+            <video id="scanner-video" autoplay playsinline></video>
+            <canvas id="scanner-canvas" class="hidden"></canvas>
+            <div class="scanner-overlay">
+                <div class="scanner-frame"></div>
+                <div class="scanner-text" id="scanner-type">Escaneando...</div>
+            </div>
+        </div>
+        
+        <div class="scanner-controls">
+            <button id="switch-camera-btn" class="btn btn-secondary">Cambiar Cámara</button>
+            <button id="toggle-flash-btn" class="btn btn-secondary">Flash</button>
+        </div>
+        
+        <div class="scanner-status">
+            <div id="location-status" class="status-item">
+                <span class="status-icon">📍</span>
+                <span id="location-text">Obteniendo ubicación...</span>
+            </div>
+            <div id="camera-status" class="status-item">
+                <span class="status-icon">📷</span>
+                <span id="camera-text">Cámara activa</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Pantalla de Resultados -->
+    <div id="result-screen" class="screen">
+        <div class="result-container">
+            <div id="result-icon" class="result-icon">✅</div>
+            <h2 id="result-title">Registro Exitoso</h2>
+            <p id="result-message">Tu registro ha sido procesado correctamente.</p>
+            
+            <div id="result-details" class="result-details">
+                <div class="result-detail">
+                    <span>Estudiante:</span>
+                    <span id="result-student">-</span>
+                </div>
+                <div class="result-detail">
+                    <span>Tipo:</span>
+                    <span id="result-type">-</span>
+                </div>
+                <div class="result-detail">
+                    <span>Fecha y Hora:</span>
+                    <span id="result-datetime">-</span>
+                </div>
+                <div class="result-detail">
+                    <span>Ubicación:</span>
+                    <span id="result-location">-</span>
+                </div>
+                <div class="result-detail">
+                    <span>Distancia al hospital:</span>
+                    <span id="result-distance">-</span>
+                </div>
+            </div>
+            
+            <div class="result-actions">
+                <button id="result-ok-btn" class="btn btn-primary">Aceptar</button>
+                <button id="result-scan-again-btn" class="btn btn-secondary">Registrar Otro</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/auth.js"></script>
+    <script src="js/geolocation.js"></script>
+    <script src="js/qr-scanner.js"></script>
+    <script src="js/data-manager.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/reports.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
